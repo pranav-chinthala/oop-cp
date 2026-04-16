@@ -1,0 +1,486 @@
+{
+  "info": {
+    "_postman_id": "9f6dc6a9-4d4f-4f44-b3ab-4f3fd0f0a982",
+    "name": "AtlasOps Platform API",
+    "description": "Collection for AtlasOps platform services covering authentication, projects, resources, users, audit events, and request approvals. Includes realistic request payloads and representative response examples for documentation publishing and team collaboration.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api" },
+    { "key": "authToken", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.sample.signature" },
+    { "key": "projectId", "value": "42" },
+    { "key": "resourceId", "value": "3004" },
+    { "key": "userId", "value": "17" }
+  ],
+  "item": [
+    {
+      "name": "Identity & Access",
+      "description": "Authentication and profile endpoints.",
+      "item": [
+        {
+          "name": "Sign In",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"shubham@atlasops.io\",\n  \"password\": \"SecurePass!902\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authenticates a user and returns JWT token plus user context."
+          },
+          "response": [
+            {
+              "name": "Signed In",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Accept", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"shubham@atlasops.io\",\n  \"password\": \"SecurePass!902\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "login"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"token\": \"<jwt-token>\",\n  \"user\": {\n    \"id\": 17,\n    \"name\": \"shubham\",\n    \"email\": \"shubham@atlasops.io\",\n    \"role\": \"ADMIN\"\n  }\n}"
+            },
+            {
+              "name": "Invalid Credentials",
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"error\": \"Invalid credentials\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Current Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "me"]
+            },
+            "description": "Returns profile details for the logged-in user."
+          },
+          "response": [
+            {
+              "name": "Profile",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"id\": 17,\n  \"name\": \"Shubham\",\n  \"email\": \"shubham@atlasops.io\",\n  \"department\": \"Platform Engineering\",\n  \"role\": \"ADMIN\",\n  \"joinedAt\": \"2025-08-14T10:20:44Z\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Project Workspace",
+      "description": "Create, discover and inspect platform projects.",
+      "item": [
+        {
+          "name": "List Projects",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/projects?page=0&size=20&status=ACTIVE&sort=updatedAt,desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects"],
+              "query": [
+                { "key": "page", "value": "0", "description": "Zero-based page index" },
+                { "key": "size", "value": "20", "description": "Number of records per page" },
+                { "key": "status", "value": "ACTIVE", "description": "Lifecycle status filter" },
+                { "key": "sort", "value": "updatedAt,desc", "description": "Sort by field and direction" }
+              ]
+            },
+            "description": "Retrieves project inventory for dashboard views."
+          },
+          "response": [
+            {
+              "name": "Paged Projects",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"content\": [\n    {\n      \"id\": 42,\n      \"name\": \"Merchant Onboarding\",\n      \"status\": \"ACTIVE\",\n      \"owner\": \"shubham@atlasops.io\",\n      \"updatedAt\": \"2026-04-10T18:11:23Z\"\n    },\n    {\n      \"id\": 43,\n      \"name\": \"Fraud Risk Engine\",\n      \"status\": \"ACTIVE\",\n      \"owner\": \"ananya@atlasops.io\",\n      \"updatedAt\": \"2026-04-09T09:31:47Z\"\n    }\n  ],\n  \"page\": 0,\n  \"size\": 20,\n  \"totalElements\": 87\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Project",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Payments Gateway Reliability\",\n  \"description\": \"Hardening failover and observability for regional payment clusters\",\n  \"status\": \"ACTIVE\",\n  \"managerEmail\": \"shubham@atlasops.io\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/projects",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects"]
+            },
+            "description": "Creates a new project under the authenticated account."
+          },
+          "response": [
+            {
+              "name": "Project Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" },
+                { "key": "Location", "value": "/api/projects/58" }
+              ],
+              "body": "{\n  \"id\": 58,\n  \"name\": \"Payments Gateway Reliability\",\n  \"status\": \"ACTIVE\",\n  \"createdAt\": \"2026-04-12T12:14:03Z\"\n}"
+            },
+            {
+              "name": "Validation Failure",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"error\": \"Project name already exists\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Project Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/projects/{{projectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["projects", "{{projectId}}"]
+            },
+            "description": "Returns details, ownership and metadata for a specific project."
+          },
+          "response": [
+            {
+              "name": "Project Snapshot",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"id\": 42,\n  \"name\": \"Merchant Onboarding\",\n  \"description\": \"Enable merchants to complete onboarding in under 30 minutes\",\n  \"status\": \"ACTIVE\",\n  \"manager\": {\n    \"id\": 17,\n    \"email\": \"shubham@atlasops.io\"\n  },\n  \"members\": 14\n}"
+            },
+            {
+              "name": "Project Not Found",
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"error\": \"Project not found\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Resource Catalog",
+      "description": "Infrastructure and service resources attached to projects.",
+      "item": [
+        {
+          "name": "List Resources by Project",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/resources?projectId={{projectId}}&type=DATABASE&status=ACTIVE",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources"],
+              "query": [
+                { "key": "projectId", "value": "{{projectId}}", "description": "Owning project id" },
+                { "key": "type", "value": "DATABASE", "description": "Resource category" },
+                { "key": "status", "value": "ACTIVE", "description": "Current allocation status" }
+              ]
+            },
+            "description": "Returns provisioned resources for selected project and type filters."
+          },
+          "response": [
+            {
+              "name": "Resource List",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "[\n  {\n    \"id\": 3004,\n    \"name\": \"merchant-db-primary\",\n    \"type\": \"DATABASE\",\n    \"status\": \"ACTIVE\",\n    \"region\": \"ap-south-1\"\n  },\n  {\n    \"id\": 3011,\n    \"name\": \"merchant-db-replica\",\n    \"type\": \"DATABASE\",\n    \"status\": \"ACTIVE\",\n    \"region\": \"ap-south-1\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Create Resource",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": {{projectId}},\n  \"name\": \"risk-queue-processor\",\n  \"type\": \"SERVICE\",\n  \"region\": \"ap-south-1\",\n  \"status\": \"PROVISIONING\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/resources",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources"]
+            },
+            "description": "Registers a new resource for project operations and ownership tracking."
+          },
+          "response": [
+            {
+              "name": "Accepted",
+              "status": "Accepted",
+              "code": 202,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"id\": 3114,\n  \"name\": \"risk-queue-processor\",\n  \"status\": \"PROVISIONING\",\n  \"trackingRef\": \"prov_3114_20260412\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Decommission Resource",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "X-Reason", "value": "Replaced by consolidated pool" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/resources/{{resourceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["resources", "{{resourceId}}"]
+            },
+            "description": "Initiates decommissioning workflow for a resource."
+          },
+          "response": [
+            {
+              "name": "No Content",
+              "status": "No Content",
+              "code": 204,
+              "_postman_previewlanguage": "text",
+              "header": []
+            },
+            {
+              "name": "Conflict",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"error\": \"Resource is currently attached to active deployment\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "People & Access",
+      "description": "Users and access request workflow.",
+      "item": [
+        {
+          "name": "Directory Search",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users?query=ananya&role=DEVELOPER&page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                { "key": "query", "value": "ananya", "description": "Name or email search" },
+                { "key": "role", "value": "DEVELOPER", "description": "Role filter" },
+                { "key": "page", "value": "0", "description": "Page index" },
+                { "key": "size", "value": "10", "description": "Page size" }
+              ]
+            },
+            "description": "Looks up user directory entries and role metadata."
+          },
+          "response": [
+            {
+              "name": "Matches",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"content\": [\n    {\n      \"id\": 21,\n      \"name\": \"Ananya Rao\",\n      \"email\": \"ananya@atlasops.io\",\n      \"role\": \"DEVELOPER\"\n    }\n  ],\n  \"totalElements\": 1\n}"
+            }
+          ]
+        },
+        {
+          "name": "Submit Access Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": {{userId}},\n  \"resourceId\": {{resourceId}},\n  \"permission\": \"WRITE\",\n  \"justification\": \"Need deployment permissions for quarterly payment release\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/access-requests",
+              "host": ["{{baseUrl}}"],
+              "path": ["access-requests"]
+            },
+            "description": "Creates an approval workflow request for resource access."
+          },
+          "response": [
+            {
+              "name": "Request Submitted",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"id\": 985,\n  \"status\": \"PENDING\",\n  \"submittedAt\": \"2026-04-12T13:44:11Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Approve Access Request",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"APPROVED\",\n  \"comment\": \"Approved for release window until end of quarter\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/access-requests/985/decision",
+              "host": ["{{baseUrl}}"],
+              "path": ["access-requests", "985", "decision"]
+            },
+            "description": "Used by managers to approve or reject access requests."
+          },
+          "response": [
+            {
+              "name": "Decision Recorded",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"id\": 985,\n  \"status\": \"APPROVED\",\n  \"reviewedBy\": \"shubham@atlasops.io\",\n  \"reviewedAt\": \"2026-04-12T13:50:29Z\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Audit Intelligence",
+      "description": "Audit records and filtered investigations.",
+      "item": [
+        {
+          "name": "Recent Audit Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{authToken}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/audit/events?actorEmail=shubham@atlasops.io&action=RESOURCE_UPDATED&from=2026-04-01T00:00:00Z&to=2026-04-12T23:59:59Z&page=0&size=25",
+              "host": ["{{baseUrl}}"],
+              "path": ["audit", "events"],
+              "query": [
+                { "key": "actorEmail", "value": "shubham@atlasops.io", "description": "Filter by actor" },
+                { "key": "action", "value": "RESOURCE_UPDATED", "description": "Audit action type" },
+                { "key": "from", "value": "2026-04-01T00:00:00Z", "description": "Lower timestamp bound" },
+                { "key": "to", "value": "2026-04-12T23:59:59Z", "description": "Upper timestamp bound" },
+                { "key": "page", "value": "0", "description": "Page index" },
+                { "key": "size", "value": "25", "description": "Page size" }
+              ]
+            },
+            "description": "Investigates timeline and actor details for operational changes."
+          },
+          "response": [
+            {
+              "name": "Audit Page",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "body": "{\n  \"content\": [\n    {\n      \"id\": 8112,\n      \"action\": \"RESOURCE_UPDATED\",\n      \"actorEmail\": \"shubham@atlasops.io\",\n      \"targetType\": \"RESOURCE\",\n      \"targetId\": 3004,\n      \"timestamp\": \"2026-04-11T07:21:11Z\"\n    },\n    {\n      \"id\": 8126,\n      \"action\": \"RESOURCE_UPDATED\",\n      \"actorEmail\": \"shubham@atlasops.io\",\n      \"targetType\": \"RESOURCE\",\n      \"targetId\": 3011,\n      \"timestamp\": \"2026-04-12T06:55:38Z\"\n    }\n  ],\n  \"page\": 0,\n  \"size\": 25,\n  \"totalElements\": 2\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

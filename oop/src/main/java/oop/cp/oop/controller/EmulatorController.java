@@ -1,8 +1,14 @@
 package oop.cp.oop.controller;
 
 import jakarta.validation.Valid;
+import oop.cp.oop.dto.CollectionImportResponse;
+import oop.cp.oop.dto.CollectionRunRequest;
+import oop.cp.oop.dto.CollectionRunResponse;
 import oop.cp.oop.dto.HttpEmulatorRequest;
+import oop.cp.oop.dto.ImportCollectionRequest;
 import oop.cp.oop.dto.SocketEmulatorRequest;
+import oop.cp.oop.service.CollectionImportService;
+import oop.cp.oop.service.CollectionRunService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +28,15 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/emulator")
 public class EmulatorController {
+
+    private final CollectionImportService collectionImportService;
+    private final CollectionRunService collectionRunService;
+
+    public EmulatorController(CollectionImportService collectionImportService,
+                              CollectionRunService collectionRunService) {
+        this.collectionImportService = collectionImportService;
+        this.collectionRunService = collectionRunService;
+    }
 
     @PostMapping("/http")
     public ResponseEntity<?> runHttp(@Valid @RequestBody HttpEmulatorRequest payload) {
@@ -73,5 +88,25 @@ public class EmulatorController {
         } catch (IOException ex) {
             return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         }
+    }
+
+    @PostMapping("/collections/import")
+    public ResponseEntity<?> importCollection(@Valid @RequestBody ImportCollectionRequest payload) {
+        try {
+            CollectionImportResponse parsed = collectionImportService.parse(payload.rawJson());
+            return ResponseEntity.ok(parsed);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error",
+                    ex.getMessage() == null ? "Failed to parse uploaded collection file." : ex.getMessage()
+            ));
+        }
+    }
+
+    @PostMapping("/collections/run")
+    public ResponseEntity<?> runCollection(@Valid @RequestBody CollectionRunRequest payload) {
+        boolean stopOnError = Boolean.TRUE.equals(payload.stopOnError());
+        CollectionRunResponse result = collectionRunService.run(payload.requests(), stopOnError);
+        return ResponseEntity.ok(result);
     }
 }

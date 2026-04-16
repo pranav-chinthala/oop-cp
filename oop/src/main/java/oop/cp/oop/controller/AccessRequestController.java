@@ -14,6 +14,7 @@ import oop.cp.oop.service.AuditLogService;
 import oop.cp.oop.service.ProjectManagerHistoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -41,6 +42,7 @@ public class AccessRequestController {
     }
 
     @GetMapping("/pending")
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> pendingRequests() {
         return accessRequestRepository.findByStatusOrderByRequestedAtDesc(AccessRequestStatus.PENDING)
                 .stream()

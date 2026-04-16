@@ -11,6 +11,7 @@ import oop.cp.oop.repository.UserRepository;
 import oop.cp.oop.service.AuditLogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -40,6 +41,7 @@ public class ProjectController {
     }
 
     @GetMapping
+    @Transactional(readOnly = true)
     public ResponseEntity<?> listProjects(@RequestParam Long userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
@@ -59,6 +61,7 @@ public class ProjectController {
     }
 
     @GetMapping("/{projectId}")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getProject(@PathVariable Long projectId) {
         Project project = projectRepository.findById(projectId).orElse(null);
         if (project == null) {

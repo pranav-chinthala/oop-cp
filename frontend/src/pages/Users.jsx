@@ -26,17 +26,17 @@ export default function Users() {
     setLoading(true)
     try {
       if (isSuperAdmin) {
-        const [pendingRes, saRes, empRes, pmBucketsRes] = await Promise.all([
+        const [pendingRes, saRes, empRes, pmBucketsRes] = await Promise.allSettled([
           api.get('/requests/pending'),
           api.get('/users?role=SUPER_ADMIN'),
           api.get('/users?role=EMPLOYEE'),
           api.get('/users/project-managers/buckets'),
         ])
 
-        setPending(pendingRes.data || [])
-        setSuperAdmins(saRes.data || [])
-        setEmployees(empRes.data || [])
-        setPmBuckets(pmBucketsRes.data || { active: [], past: [], removed: [] })
+        setPending(pendingRes.status === 'fulfilled' ? pendingRes.value.data || [] : [])
+        setSuperAdmins(saRes.status === 'fulfilled' ? saRes.value.data || [] : [])
+        setEmployees(empRes.status === 'fulfilled' ? empRes.value.data || [] : [])
+        setPmBuckets(pmBucketsRes.status === 'fulfilled' ? pmBucketsRes.value.data || { active: [], past: [], removed: [] } : { active: [], past: [], removed: [] })
       } else {
         const [projectListRes, usersRes] = await Promise.all([api.get(`/projects?userId=${currentUser.userId}`), api.get('/users')])
 

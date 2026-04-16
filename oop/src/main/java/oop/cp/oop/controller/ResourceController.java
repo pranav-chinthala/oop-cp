@@ -8,6 +8,7 @@ import oop.cp.oop.service.AuditLogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -56,6 +57,7 @@ public class ResourceController {
     }
 
     @GetMapping
+    @Transactional(readOnly = true)
     public ResponseEntity<?> listResources(@RequestParam Long userId) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
@@ -80,6 +82,7 @@ public class ResourceController {
     }
 
     @GetMapping("/{resourceId}")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getResource(@PathVariable Long resourceId, @RequestParam(required = false) Long viewerId) {
         Resource resource = resourceRepository.findById(resourceId).orElse(null);
         if (resource == null) {
@@ -263,6 +266,7 @@ public class ResourceController {
     }
 
     @GetMapping("/{resourceId}/credentials")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> listCredentials(@PathVariable Long resourceId, @RequestParam Long viewerId) {
         User viewer = userRepository.findById(viewerId).orElse(null);
         if (viewer == null || viewer.getRole() != UserRole.SUPER_ADMIN) {
@@ -309,6 +313,7 @@ public class ResourceController {
     }
 
     @GetMapping("/{resourceId}/api-endpoints/{endpointId}/permissions")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> listEndpointAccess(@PathVariable Long resourceId, @PathVariable Long endpointId) {
         ApiEndpoint endpoint = apiEndpointRepository.findById(endpointId).orElse(null);
         if (endpoint == null || !endpoint.getResource().getId().equals(resourceId)) {

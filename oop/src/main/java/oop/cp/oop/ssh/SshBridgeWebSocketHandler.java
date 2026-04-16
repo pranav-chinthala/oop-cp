@@ -15,6 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class SshBridgeWebSocketHandler extends TextWebSocketHandler {
 
+    private static final String ANSI_CSI = "\\u001B\\[[0-?]*[ -/]*[@-~]";
+    private static final String ANSI_OSC = "\\u001B\\][^\\u0007]*(\\u0007|\\u001B\\\\)";
+    private static final String ANSI_SINGLE = "\\u001B[@-_]";
+
     private final Map<String, SshSessionBridge> sshConnections = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -92,10 +96,14 @@ public class SshBridgeWebSocketHandler extends TextWebSocketHandler {
                     continue;
                 }
                 String data = new String(buffer, 0, bytesRead);
+                String cleaned = sanitizeTerminalOutput(data);
+                if (cleaned.isBlank()) {
+                    continue;
+                }
                 synchronized (webSocketSession) {
                     webSocketSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(Map.of(
                             "type", "output",
-                            "data", data
+                            "data", cleaned
                     ))));
                 }
             }
@@ -119,5 +127,40 @@ public class SshBridgeWebSocketHandler extends TextWebSocketHandler {
         if (bridge != null) {
             bridge.close();
         }
+    }
+
+    private String sanitizeTerminalOutput(String raw) {
+        if (raw == null || raw.isEmpty()) {
+            return "";
+        }
+
+        String withoutAnsi = raw
+                .replaceAll(ANSI_OSC, "")
+                .replaceAll(ANSI_CSI, "")
+                .replaceAll(ANSI_SINGLE, "");
+
+        String noBackspaces = applyBackspaces(withoutAnsi);
+        String normalized = noBackspaces
+                .replace("\r\n", "\n")
+                .replace('\r', '\n')
+                .replaceAll("[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]", "")
+                .replaceAll("\n{3,}", "\n\n");
+
+        return normalized;
+    }
+
+    private String applyBackspaces(String text) {
+        StringBuilder out = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            char ch = text.charAt(i);
+            if (ch == '\b') {
+                if (!out.isEmpty()) {
+                    out.deleteCharAt(out.length() - 1);
+                }
+                continue;
+            }
+            out.append(ch);
+        }
+        return out.toString();
     }
 }
