@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -203,6 +202,14 @@ public class ResourceController {
 
         if (resource == null || user == null || grantedBy == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse("Resource or user not found"));
+        }
+
+        boolean isSuperAdmin = grantedBy.getRole() == UserRole.SUPER_ADMIN;
+        if (!isSuperAdmin) {
+            ResourcePermission grantorPermission = resourcePermissionRepository.findByResource_IdAndUser_Id(resourceId, grantedBy.getId()).orElse(null);
+            if (grantorPermission == null || !grantorPermission.isCanAccess() || !grantorPermission.isCanGrantAccess()) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new ApiResponse("You are not allowed to grant resource access"));
+            }
         }
 
         ResourcePermission permission = resourcePermissionRepository.findByResource_IdAndUser_Id(resourceId, request.userId())

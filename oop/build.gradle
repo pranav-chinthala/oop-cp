@@ -24,6 +24,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	implementation 'org.springframework.security:spring-security-crypto'
 	implementation 'com.github.mwiede:jsch:0.2.22'
+	implementation platform('software.amazon.awssdk:bom:2.25.61')
+	implementation 'software.amazon.awssdk:s3'
+	implementation 'software.amazon.awssdk:dynamodb'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

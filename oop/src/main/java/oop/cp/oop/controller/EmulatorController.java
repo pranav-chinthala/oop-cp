@@ -1,12 +1,14 @@
 package oop.cp.oop.controller;
 
 import jakarta.validation.Valid;
+import oop.cp.oop.dto.AwsEmulatorRequest;
 import oop.cp.oop.dto.CollectionImportResponse;
 import oop.cp.oop.dto.CollectionRunRequest;
 import oop.cp.oop.dto.CollectionRunResponse;
 import oop.cp.oop.dto.HttpEmulatorRequest;
 import oop.cp.oop.dto.ImportCollectionRequest;
 import oop.cp.oop.dto.SocketEmulatorRequest;
+import oop.cp.oop.service.AwsEmulatorService;
 import oop.cp.oop.service.CollectionImportService;
 import oop.cp.oop.service.CollectionRunService;
 import org.springframework.http.ResponseEntity;
@@ -31,11 +33,14 @@ public class EmulatorController {
 
     private final CollectionImportService collectionImportService;
     private final CollectionRunService collectionRunService;
+    private final AwsEmulatorService awsEmulatorService;
 
     public EmulatorController(CollectionImportService collectionImportService,
-                              CollectionRunService collectionRunService) {
+                              CollectionRunService collectionRunService,
+                              AwsEmulatorService awsEmulatorService) {
         this.collectionImportService = collectionImportService;
         this.collectionRunService = collectionRunService;
+        this.awsEmulatorService = awsEmulatorService;
     }
 
     @PostMapping("/http")
@@ -88,6 +93,16 @@ public class EmulatorController {
         } catch (IOException ex) {
             return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
         }
+    }
+
+    @PostMapping("/aws")
+    public ResponseEntity<?> runAws(@Valid @RequestBody AwsEmulatorRequest payload) {
+        return ResponseEntity.ok(awsEmulatorService.execute(
+                payload.service(),
+                payload.action(),
+                payload.resourceName(),
+                payload.parameters()
+        ));
     }
 
     @PostMapping("/collections/import")
