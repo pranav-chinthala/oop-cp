@@ -60,6 +60,7 @@ public class AccessRequestController {
     }
 
     @PostMapping("/{requestId}/review")
+    @Transactional
     public ResponseEntity<?> reviewRequest(@PathVariable Long requestId, @Valid @RequestBody ReviewRequestPayload payload) {
         User reviewer = userRepository.findById(payload.reviewerId()).orElse(null);
         if (reviewer == null || reviewer.getRole() != UserRole.SUPER_ADMIN) {
