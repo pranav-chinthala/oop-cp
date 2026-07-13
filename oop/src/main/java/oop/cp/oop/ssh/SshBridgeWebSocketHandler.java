@@ -77,6 +77,7 @@ public class SshBridgeWebSocketHandler extends TextWebSocketHandler {
             readerThread.setDaemon(true);
             readerThread.start();
         } catch (Exception ex) {
+            ex.printStackTrace();
             webSocketSession.sendMessage(new TextMessage(objectMapper.writeValueAsString(Map.of(
                     "type", "error",
                     "message", ex.getMessage() == null ? "Unable to connect" : ex.getMessage()

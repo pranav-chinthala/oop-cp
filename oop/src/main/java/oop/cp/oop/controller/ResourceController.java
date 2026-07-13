@@ -142,6 +142,7 @@ public class ResourceController {
         return ResponseEntity.ok(payload);
     }
 
+    @Transactional
     @PostMapping
     public ResponseEntity<?> createResource(@Valid @RequestBody CreateResourceRequest request) {
         Project project = projectRepository.findById(request.projectId()).orElse(null);
