@@ -1,0 +1,78 @@
+services:
+  db:
+    image: mysql:8.4
+    container_name: oop-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: "oop_rmcs"
+      MYSQL_USER: "oopapp"
+      MYSQL_PASSWORD: "oopapp123"
+      MYSQL_ROOT_PASSWORD: "rootpassword"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - '3306:3306'
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -u oopapp -poopapp123']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  localstack:
+    image: localstack/localstack:2.3.2
+    container_name: oop-localstack
+    restart: unless-stopped
+    environment:
+      SERVICES: "s3,dynamodb"
+      DEBUG: "0"
+    ports:
+      - '4566:4566'
+      - '4510-4559:4510-4559'
+    volumes:
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://localhost:4566/_localstack/health >/dev/null']
+      interval: 10s
+      timeout: 5s
+      retries: 18
+
+  backend:
+    build:
+      context: ./oop
+    container_name: oop-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: "jdbc:mysql://db:3306/oop_rmcs?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+      SPRING_DATASOURCE_USERNAME: "oopapp"
+      SPRING_DATASOURCE_PASSWORD: "oopapp123"
+      APP_FRONTEND_URL: "http://localhost:5173"
+      APP_AWS_LOCALSTACK_ENDPOINT: "http://localstack:4566"
+      APP_AWS_REGION: "us-east-1"
+      APP_AWS_ACCESS_KEY: "test"
+      APP_AWS_SECRET_KEY: "test"
+    ports:
+      - '8081:8081'
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: oop-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      VITE_API_PROXY_TARGET: "http://backend:8081"
+      VITE_SSH_WS_URL: "ws://localhost:8081/ws/ssh"
+    ports:
+      - '5173:5173'
+
+volumes:
+  mysql_data:
+  localstack_data:

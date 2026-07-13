@@ -1,0 +1,6 @@
+build
+.gradle
+bin
+.git
+.DS_Store
+logs
